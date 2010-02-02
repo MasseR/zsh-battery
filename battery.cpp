@@ -187,7 +187,7 @@ inline void formatBars(int capacity, battery_t &battery)
 int main(void)
 {
     string batterydir("");
-    battery_t battery = {0, 0, 0};
+    battery_t battery = {1, 1, 1}; // Prevent division by zero
     // Check whether we are on AC power and print an upwards arrow to symbolize
     // AC current
     if(fileExists(AC))
