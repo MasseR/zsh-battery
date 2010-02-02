@@ -1,0 +1,6 @@
+Battery status bar. Reads battery status information and prints colored
+unicode triangles representing battery status. In this implementation the
+color codes are for zsh.
+
+Made in C++ instead of for example python because I wanted more speed
+(rendered often) and wanted more experience with C++.
