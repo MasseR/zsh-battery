@@ -17,13 +17,14 @@ typedef struct BATTERY battery_t;
 const string BAT0("/proc/acpi/battery/BAT0");
 const string BAT1("/proc/acpi/battery/BAT1");
 const string AC("/proc/acpi/ac_adapter/ACAD/state");
-const string RED("\033[0;31m");
-const string GREEN("\033[0;32m");
-const string YELLOW("\033[1;33m");
-const string NOCOLOR("\033[0m");
-const string ACSYMBOL("↑");
+const string RED("%{\033[0;31m%}");
+const string GREEN("%{\033[0;32m%}");
+const string YELLOW("%{\033[0;33m%}");
+const string NOCOLOR("%{\033[0;0m%}");
+const string ACSYMBOL(GREEN + "↑" + NOCOLOR);
+const string BATTERYSYMBOL(RED + "↓" + NOCOLOR);
 const string BARSYMBOL("▶");
-const int BARS = 8;
+const int BARS = 10;
 
 inline bool fileExists(string filename)
 {
@@ -141,8 +142,13 @@ int main(void)
     // Check whether we are on AC power and print an upwards arrow to symbolize
     // AC current
     if(fileExists(AC))
+    {
         if(acPower(AC))
-            cout << ACSYMBOL << " ";
+            cout << ACSYMBOL;
+        else
+            cout << BATTERYSYMBOL;
+        cout << " ";
+    }
     if(fileExists(BAT0))
         batterydir = BAT0;
     else if(fileExists(BAT1))
