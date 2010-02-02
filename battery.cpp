@@ -49,18 +49,22 @@ struct BATTERY {
 
 typedef struct BATTERY battery_t;
 
+// File locations
 const string BAT0("/proc/acpi/battery/BAT0");
 const string BAT1("/proc/acpi/battery/BAT1");
 const string AC("/proc/acpi/ac_adapter/ACAD/state");
+// Colors
 const string RED("%{\033[0;31m%}");
 const string GREEN("%{\033[0;32m%}");
 const string YELLOW("%{\033[0;33m%}");
 const string NOCOLOR("%{\033[0;0m%}");
+// Symbols
 const string ACSYMBOL(GREEN + "↑" + NOCOLOR);
 const string BATTERYSYMBOL(RED + "↓" + NOCOLOR);
 const string BARSYMBOL("▶");
 const int BARS = 10;
 
+// Check that file exists
 inline bool fileExists(string filename)
 {
     struct stat statbuffer;
@@ -71,6 +75,7 @@ inline bool fileExists(string filename)
     return status==0?true:false;
 }
 
+// Check whether we're on AC-power
 inline bool acPower(string filename)
 {
     string state;
@@ -87,7 +92,8 @@ inline bool acPower(string filename)
         return true;
 }
 
-// Get the design capacity
+// Get the design capacity and warning capacity
+// Information is retrieved from {BAT0,BAT1}/info
 inline void batteryCapacity(string dir, battery_t &battery)
 {
     string filename(dir + string("/info"));
@@ -125,6 +131,8 @@ inline void batteryCapacity(string dir, battery_t &battery)
     file.close();
 }
 
+// Get the current capacity
+// Information is retrieved from {BAT0,BAT1}/state
 inline void currentCapacity(string dir, battery_t &battery)
 {
     string filename(dir + string("/state")), temp;
@@ -149,14 +157,20 @@ inline void currentCapacity(string dir, battery_t &battery)
     file.close();
 }
 
+// Calculate the green bars
 inline int green(battery_t &battery)
 {
     return (battery.currentCapacity /
         static_cast<float>(battery.designCapacity)) * BARS;
 }
 
+// Print the colored bars
 inline void formatBars(int capacity, battery_t &battery)
 {
+    // Output colored bars. Output green bars if index is less then the
+    // capacity (green = remaining), otherwise output yellow or red bars.
+    // Output red bars only if total remaining capacity is less than warning
+    // capacity.
     for(int i = 0; i < BARS; i++)
     {
         if(i < capacity)
@@ -184,14 +198,17 @@ int main(void)
             cout << BATTERYSYMBOL;
         cout << " ";
     }
+
+    // Find the battery (BAT0 or BAT1, I doubt there'd be BAT2)
     if(fileExists(BAT0))
         batterydir = BAT0;
     else if(fileExists(BAT1))
         batterydir = BAT1;
-    // We have no batteries o.O. Exit with return code 0
+    // Seems like we have no batteries, why would you need this then?
     if(batterydir == string(""))
         return 0;
 
+    // Fill the battery struct
     batteryCapacity(batterydir, battery);
     currentCapacity(batterydir, battery);
 
