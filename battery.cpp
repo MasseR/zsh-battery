@@ -17,6 +17,13 @@ typedef struct BATTERY battery_t;
 const string BAT0("/proc/acpi/battery/BAT0");
 const string BAT1("/proc/acpi/battery/BAT1");
 const string AC("/proc/acpi/ac_adapter/ACAD/state");
+const string RED("\033[0;31m");
+const string GREEN("\033[0;32m");
+const string YELLOW("\033[1;33m");
+const string NOCOLOR("\033[0m");
+const string ACSYMBOL("↑");
+const string BARSYMBOL("▶");
+const int BARS = 8;
 
 inline bool fileExists(string filename)
 {
@@ -48,6 +55,7 @@ inline bool acPower(string filename)
 inline void batteryCapacity(string dir, battery_t &battery)
 {
     string filename(dir + string("/info"));
+    if(!fileExists(filename)) return;
     ifstream file(filename.c_str());
     string temp;
     int state = 0;
@@ -72,6 +80,7 @@ inline void batteryCapacity(string dir, battery_t &battery)
             file >> temp;
             battery.warningCapacity = atoi(temp.c_str());
             state = 0;
+            break;
         }
         else
             state = 0;
@@ -83,6 +92,7 @@ inline void batteryCapacity(string dir, battery_t &battery)
 inline void currentCapacity(string dir, battery_t &battery)
 {
     string filename(dir + string("/state")), temp;
+    if(!fileExists(filename)) return;
     ifstream file(filename.c_str());
     int state = 0;
 
@@ -103,6 +113,27 @@ inline void currentCapacity(string dir, battery_t &battery)
     file.close();
 }
 
+inline int green(battery_t &battery)
+{
+    return (battery.currentCapacity /
+        static_cast<float>(battery.designCapacity)) * BARS;
+}
+
+inline void formatBars(int capacity, battery_t &battery)
+{
+    for(int i = 0; i < BARS; i++)
+    {
+        if(i < capacity)
+            cout << GREEN;
+        else if(battery.currentCapacity < battery.warningCapacity)
+            cout << RED;
+        else
+            cout << YELLOW;
+        cout << BARSYMBOL;
+    }
+    cout << NOCOLOR;
+}
+
 int main(void)
 {
     string batterydir("");
@@ -111,7 +142,7 @@ int main(void)
     // AC current
     if(fileExists(AC))
         if(acPower(AC))
-            cout << "↑";
+            cout << ACSYMBOL << " ";
     if(fileExists(BAT0))
         batterydir = BAT0;
     else if(fileExists(BAT1))
@@ -122,6 +153,8 @@ int main(void)
 
     batteryCapacity(batterydir, battery);
     currentCapacity(batterydir, battery);
+
+    formatBars(green(battery), battery);
 
     return 0;
 }
