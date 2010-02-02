@@ -6,6 +6,14 @@
 
 using namespace std;
 
+struct BATTERY {
+    int designCapacity;
+    int warningCapacity;
+    int currentCapacity;
+};
+
+typedef struct BATTERY battery_t;
+
 const string BAT0("/proc/acpi/battery/BAT0");
 const string BAT1("/proc/acpi/battery/BAT1");
 const string AC("/proc/acpi/ac_adapter/ACAD/state");
@@ -37,12 +45,11 @@ inline bool acPower(string filename)
 }
 
 // Get the design capacity
-inline int batteryCapacity(string dir)
+inline void batteryCapacity(string dir, battery_t &battery)
 {
     string filename(dir + string("/info"));
     ifstream file(filename.c_str());
     string temp;
-    int capacity = 0;
     int state = 0;
 
     while(!file.eof())
@@ -51,37 +58,70 @@ inline int batteryCapacity(string dir)
         if(temp == "design")
             state = 1;
         else if(state == 1 && temp == "capacity:")
-            state = 2;
-        else if(state == 2)
         {
-            capacity = atoi(temp.c_str());
+            if(file.eof()) break;
+            file >> temp;
+            battery.designCapacity = atoi(temp.c_str());
             state = 0;
-            break;
+        }
+        else if(state == 1 && temp == "capacity")
+            state = 2;
+        else if(state == 2 && temp == "warning:")
+        {
+            if(file.eof()) break;
+            file >> temp;
+            battery.warningCapacity = atoi(temp.c_str());
+            state = 0;
         }
         else
             state = 0;
     }
 
     file.close();
-    return capacity;
+}
+
+inline void currentCapacity(string dir, battery_t &battery)
+{
+    string filename(dir + string("/state")), temp;
+    ifstream file(filename.c_str());
+    int state = 0;
+
+    while(!file.eof())
+    {
+        file >> temp;
+        if(state == 0 && temp == "remaining")
+            state = 1;
+        else if(state == 1 && temp == "capacity:")
+        {
+            if(file.eof()) break;
+            file >> temp;
+            battery.currentCapacity = atoi(temp.c_str());
+            break;
+        }
+    }
+
+    file.close();
 }
 
 int main(void)
 {
-    string battery("");
+    string batterydir("");
+    battery_t battery = {0, 0, 0};
     // Check whether we are on AC power and print an upwards arrow to symbolize
     // AC current
     if(fileExists(AC))
         if(acPower(AC))
             cout << "↑";
     if(fileExists(BAT0))
-        battery = BAT0;
+        batterydir = BAT0;
     else if(fileExists(BAT1))
-        battery = BAT1;
+        batterydir = BAT1;
     // We have no batteries o.O. Exit with return code 0
-    if(battery == string(""))
+    if(batterydir == string(""))
         return 0;
 
-    batteryCapacity(battery);
+    batteryCapacity(batterydir, battery);
+    currentCapacity(batterydir, battery);
+
     return 0;
 }
