@@ -1,3 +1,4 @@
+CPPFLAGS=-g
 PREFIX=$(HOME)
 
 all: battery
