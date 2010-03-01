@@ -38,6 +38,7 @@
 #include <string>
 #include <sys/stat.h>
 #include <cstdlib>
+#include <cstring>
 
 using namespace std;
 
@@ -96,65 +97,49 @@ inline bool acPower(string filename)
 // Information is retrieved from {BAT0,BAT1}/info
 inline void batteryCapacity(string dir, battery_t &battery)
 {
+    char *buffer = new char[256];
     string filename(dir + string("/info"));
-    if(!fileExists(filename)) return;
+    if(!fileExists(filename)) return; // XXX: Better error handling
     ifstream file(filename.c_str());
-    string temp;
-    int state = 0;
 
-    while(!file.eof())
+    for(;!file.eof(); file.getline(buffer, 256))
     {
-        file >> temp;
-        if(temp == "design")
-            state = 1;
-        else if(state == 1 && temp == "capacity:")
-        {
-            if(file.eof()) break;
-            file >> temp;
-            battery.designCapacity = atoi(temp.c_str());
-            state = 0;
-        }
-        else if(state == 1 && temp == "capacity")
-            state = 2;
-        else if(state == 2 && temp == "warning:")
-        {
-            if(file.eof()) break;
-            file >> temp;
-            battery.warningCapacity = atoi(temp.c_str());
-            state = 0;
-            break;
-        }
-        else
-            state = 0;
+	if(strncmp(buffer, "last full capacity:", 19) == 0)
+	    sscanf(buffer, "last full capacity: %d", &battery.designCapacity);
+	else if(strncmp(buffer, "design capacity warning:", 24) == 0)
+	{
+	    sscanf(buffer, "design capacity warning: %d", &battery.warningCapacity);
+	    break;
+	}
+	memset(buffer, 0, 256);
     }
 
     file.close();
+
+    delete[] buffer;
 }
 
 // Get the current capacity
 // Information is retrieved from {BAT0,BAT1}/state
 inline void currentCapacity(string dir, battery_t &battery)
 {
+    char *buffer = new char[256];
     string filename(dir + string("/state")), temp;
     if(!fileExists(filename)) return;
     ifstream file(filename.c_str());
-    int state = 0;
 
-    while(!file.eof())
+    for(;!file.eof();file.getline(buffer, 256))
     {
-        file >> temp;
-        if(state == 0 && temp == "remaining")
-            state = 1;
-        else if(state == 1 && temp == "capacity:")
-        {
-            if(file.eof()) break;
-            file >> temp;
-            battery.currentCapacity = atoi(temp.c_str());
-            break;
-        }
+	if(strncmp(buffer, "remaining capacity:", 19) == 0)
+	{
+	    sscanf(buffer, "remaining capacity: %d", &battery.currentCapacity);
+	    break;
+	}
+	memset(buffer, 0, 256);
     }
 
     file.close();
+    delete[] buffer;
 }
 
 // Calculate the green bars
