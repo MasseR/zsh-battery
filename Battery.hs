@@ -40,9 +40,10 @@ warn :: Double -> Bool
 warn = (>) warning
 
 bar :: Double -> [Color]
-bar p = let green = truncate (p * (fromIntegral barstotal)) :: Int
-	    yellow = barstotal - green :: Int
-	in (replicate green (Green barsymbol)) ++ (replicate yellow (Yellow barsymbol))
+bar p = let greens = truncate (p * (fromIntegral barstotal)) :: Int
+	    yellows = barstotal - greens :: Int
+	    yellow = if warn p then Red else Yellow
+	in (replicate greens (Green barsymbol)) ++ (replicate yellows (yellow barsymbol))
 
 printBar = do
     f <- readFile full >>= return . read
