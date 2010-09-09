@@ -4,7 +4,7 @@ battery: Battery
 	cp Battery battery
 
 Battery: Battery.hs
-	ghc --make Battery.hs
+	ghc --make -optl-static -optl-pthread Battery.hs
 
 install: battery
 	install battery $(PREFIX)/bin/
