@@ -1,9 +1,10 @@
-CPPFLAGS=-g
-PREFIX=$(HOME)
-
 all: battery
 
-battery: battery.cpp
+battery: Battery
+	cp Battery battery
+
+Battery: Battery.hs
+	ghc --make Battery.hs
 
 install: battery
 	install battery $(PREFIX)/bin/
