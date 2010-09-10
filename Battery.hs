@@ -32,9 +32,9 @@ import Files
 
 barstotal = 10
 
-charging' = Blue up
-discharging' = Red down
-full' = Green koppa
+charging' = Blue $ up : []
+discharging' = Red $ down : []
+full' = Green $ koppa : []
 
 charging "Charging\n" = charging'
 charging "Full\n" = full'
@@ -54,7 +54,7 @@ bar :: Double -> [Color]
 bar p = let greens = truncate (p * (fromIntegral barstotal)) :: Int
 	    yellows = barstotal - greens :: Int
 	    yellow = if warn p then Red else Yellow
-	in (replicate greens (Green barsymbol)) ++ (replicate yellows (yellow barsymbol))
+	in Green (replicate greens barsymbol) : yellow (replicate yellows barsymbol) : []
 
 printBar = do
     f <- readFile full >>= return . read
