@@ -32,9 +32,9 @@ import Files
 
 barstotal = 10
 
-charging' = Blue $ up : []
-discharging' = Red $ down : []
-full' = Green $ koppa : []
+charging' = Blue [up]
+discharging' = Red [down]
+full' = Green [koppa]
 
 charging "Charging\n" = charging'
 charging "Full\n" = full'
@@ -51,19 +51,18 @@ warn :: Double -> Bool
 warn = (>) warning
 
 bar :: Double -> [Color]
-bar p = let greens = truncate (p * (fromIntegral barstotal)) :: Int
+bar p = let greens = truncate (p * fromIntegral barstotal) :: Int
 	    yellows = barstotal - greens :: Int
 	    yellow = if warn p then Red else Yellow
-	in Green (replicate greens barsymbol) : yellow (replicate yellows barsymbol) : []
+	in [Green (replicate greens barsymbol), yellow (replicate yellows barsymbol)]
 
 printBar = do
-    f <- readFile full >>= return . read
-    c <- readFile charge >>= return . read
-    s <- readFile status >>= return . charging
+    f <- fmap read $ readFile full
+    c <- fmap read $ readFile charge
+    s <- fmap charging $ readFile status
     putStrLn $ render s ++ " " ++ cconcat (bar $ percent f c)
     
 main = do
     e <- filesExist
-    case e of
-	False -> putStrLn "No can do, no such files. Is battery connected?"
-	True -> printBar
+    if e then printBar
+	else putStrLn "No can do, no such files. Is battery connected?"

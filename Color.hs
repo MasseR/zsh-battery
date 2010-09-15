@@ -57,5 +57,5 @@ instance CColor Color where
 class CColor a where
     render :: a -> String
     cconcat :: [a] -> String
-    cconcat = concat . map render 
+    cconcat = concatMap render 
 
