@@ -60,7 +60,7 @@ printBar = do
     f <- fmap read $ readFile full
     c <- fmap read $ readFile charge
     s <- fmap charging $ readFile status
-    putStrLn $ render s ++ " " ++ cconcat (bar $ percent f c)
+    putStrLn $ termRender s ++ " " ++ cconcat (bar $ percent f c)
     
 main = do
     e <- filesExist

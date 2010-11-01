@@ -24,7 +24,7 @@
  -}
 module Color
     ( Color(..),
-      CColor(render, cconcat)
+      TermColor(termRender, cconcat)
     )
 where
 
@@ -45,17 +45,17 @@ data Color = Blue String |
 	     White String
     deriving (Show)
 
-instance CColor Color where
-    render (Black s)  = "%{\o033[0;30m%}" ++ s ++ "%{\o33[0;0m%}"
-    render (Red s)    = "%{\o033[0;31m%}" ++ s ++ "%{\o33[0;0m%}"
-    render (Green s)  = "%{\o033[0;32m%}" ++ s ++ "%{\o33[0;0m%}"
-    render (Brown s)  = "%{\o033[0;33m%}" ++ s ++ "%{\o33[0;0m%}"
-    render (Yellow s) = "%{\o033[1;33m%}" ++ s ++ "%{\o33[0;0m%}"
-    render (Blue s)   = "%{\o033[0;34m%}" ++ s ++ "%{\o33[0;0m%}"
-    render (Purple s) = "%{\o033[0;35m%}" ++ s ++ "%{\o33[0;0m%}"
+instance TermColor Color where
+    termRender (Black s)  = "%{\o033[0;30m%}" ++ s ++ "%{\o33[0;0m%}"
+    termRender (Red s)    = "%{\o033[0;31m%}" ++ s ++ "%{\o33[0;0m%}"
+    termRender (Green s)  = "%{\o033[0;32m%}" ++ s ++ "%{\o33[0;0m%}"
+    termRender (Brown s)  = "%{\o033[0;33m%}" ++ s ++ "%{\o33[0;0m%}"
+    termRender (Yellow s) = "%{\o033[1;33m%}" ++ s ++ "%{\o33[0;0m%}"
+    termRender (Blue s)   = "%{\o033[0;34m%}" ++ s ++ "%{\o33[0;0m%}"
+    termRender (Purple s) = "%{\o033[0;35m%}" ++ s ++ "%{\o33[0;0m%}"
 
-class CColor a where
-    render :: a -> String
+class TermColor a where
+    termRender :: a -> String
     cconcat :: [a] -> String
-    cconcat = concatMap render 
+    cconcat = concatMap termRender 
 
