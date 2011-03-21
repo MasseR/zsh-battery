@@ -24,17 +24,30 @@
  -}
 module Files where
 
-import System.Directory (doesFileExist)
+import System.Directory (doesFileExist, getDirectoryContents)
 import System.FilePath
 import Control.Monad (forM)
+import Control.Monad.Error
+import Data.List (isPrefixOf)
 
-filesExist :: IO Bool
-filesExist = do
-		let f = [full, charge, status]
-		t <- forM f doesFileExist
-		return $ all id t
+batterydir ::  FilePath
+batterydir = "/sys/class/power_supply/"
 
-batterydir = "/sys/class/power_supply/BAT1"
-full = batterydir </> "charge_full"
-charge = batterydir </> "charge_now"
-status = batterydir </> "status"
+batteryfile :: ErrorT String IO FilePath
+batteryfile = do
+  all <- liftIO $ getDirectoryContents batterydir
+  case filter (("BAT" `isPrefixOf`)) all of
+       [] -> throwError "No batteries present"
+       (x:_) -> return x
+
+full ::  ErrorT String IO FilePath
+full = (</> "charge_full") `fmap` batteryfile
+
+charge ::  ErrorT String IO FilePath
+charge = (</> "charge_now") `fmap` batteryfile
+
+status ::  ErrorT String IO FilePath
+status = (</> "status") `fmap` batteryfile
+
+readFileM :: FilePath -> ErrorT String IO String
+readFileM = liftIO . readFile

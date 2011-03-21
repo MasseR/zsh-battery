@@ -24,6 +24,7 @@
  -}
 module Main (main) where
 
+import Control.Monad.Error
 import Color
 import Symbols
 import Files
@@ -43,7 +44,6 @@ charging _	    = discharging'
 
 warning = 0.1 -- 10%
 
-
 percent :: Double -> Double -> Double
 percent o n = n / o
 
@@ -57,12 +57,9 @@ bar p = let greens = truncate (p * fromIntegral barstotal) :: Int
 	in [Green (replicate greens barsymbol), yellow (replicate yellows barsymbol)]
 
 printBar = do
-    f <- fmap read $ readFile full
-    c <- fmap read $ readFile charge
-    s <- fmap charging $ readFile status
-    putStrLn $ termRender s ++ " " ++ cconcat (bar $ percent f c)
+    f <- fmap read $ readFileM =<< full
+    c <- fmap read $ readFileM =<< charge
+    s <- fmap charging $ readFileM =<< status
+    liftIO $ putStrLn $ termRender s ++ " " ++ cconcat (bar $ percent f c)
     
-main = do
-    e <- filesExist
-    if e then printBar
-	else putStrLn "No can do, no such files. Is battery connected?"
+main = runErrorT printBar
