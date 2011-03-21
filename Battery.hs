@@ -25,6 +25,7 @@
 module Main (main) where
 
 import Control.Monad.Error
+import System.IO (hPutStrLn, stderr)
 import Color
 import Symbols
 import Files
@@ -60,6 +61,10 @@ printBar = do
     f <- fmap read $ readFileM =<< full
     c <- fmap read $ readFileM =<< charge
     s <- fmap charging $ readFileM =<< status
-    liftIO $ putStrLn $ termRender s ++ " " ++ cconcat (bar $ percent f c)
-    
-main = runErrorT printBar
+    return $ termRender s ++ " " ++ cconcat (bar $ percent f c)
+
+main = do
+  bar <- runErrorT printBar
+  case bar of
+    Right x -> putStrLn x
+    Left x -> hPutStrLn stderr x
