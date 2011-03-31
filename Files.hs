@@ -38,7 +38,7 @@ batteryfile = do
   all <- liftIO $ getDirectoryContents batterydir
   case filter (("BAT" `isPrefixOf`)) all of
        [] -> throwError "No batteries present"
-       (x:_) -> return x
+       (x:_) -> return $ batterydir </> x
 
 full ::  ErrorT String IO FilePath
 full = (</> "charge_full") `fmap` batteryfile
